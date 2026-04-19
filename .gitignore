@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+tess_training/models/
+tess_training/results/
+results/
