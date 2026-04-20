@@ -1,6 +1,9 @@
 .venv/
 __pycache__/
 *.pyc
-tess_training/models/
-tess_training/results/
-results/
+# tess_training/models/
+# tess_training/results/
+# results/
+data/
+*.zip
+*.npy
