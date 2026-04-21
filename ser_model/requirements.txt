@@ -1,9 +1,9 @@
-# Speech Emotion Recognition Model - Requirements
-# Python 3.8+
+﻿# Speech Emotion Recognition Model - Requirements
+# Python 3.9+
 
 # Core Deep Learning
-tensorflow>=2.13.0
-keras>=2.13.0
+torch>=2.3.0
+torchaudio>=2.3.0
 
 # Audio Processing
 librosa>=0.10.0
@@ -23,7 +23,3 @@ seaborn>=0.12.0
 # Utilities
 tqdm>=4.65.0
 pyyaml>=6.0
-
-# Development (optional)
-jupyter>=1.0.0
-ipython>=8.0.0

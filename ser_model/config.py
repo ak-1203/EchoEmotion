@@ -1,9 +1,8 @@
-"""
+﻿"""
 SER Model Configuration
 Centralized configuration for all hyperparameters and paths
 """
 
-import os
 from pathlib import Path
 
 # ============================================================================
@@ -38,7 +37,7 @@ TARGET_DURATION = 3.0  # Target audio duration for padding/trimming
 # DATA AUGMENTATION
 # ============================================================================
 USE_AUGMENTATION = True
-AUGMENTATION_PROB = 0.7  # Probability of applying augmentation
+AUGMENTATION_PROB = 0.5  # Balanced augmentation (avoid over-regularization)
 
 # SpecAugment parameters
 SPEC_AUGMENT_FREQ_MASK_PARAM = 30  # F parameter for freq masking
@@ -46,7 +45,7 @@ SPEC_AUGMENT_TIME_MASK_PARAM = 40  # T parameter for time masking
 SPEC_AUGMENT_NUM_MASKS = 2  # Number of mask regions to apply
 
 # Time-domain augmentation
-PITCH_SHIFT_RANGE = (-3, 3)  # Semitones
+PITCH_SHIFT_RANGE = (-3, 3)  # Semitones (reserved)
 TIME_SHIFT_RANGE = (-0.1, 0.1)  # Fraction of duration
 NOISE_FACTOR = 0.005  # Gaussian noise standard deviation
 
@@ -73,20 +72,20 @@ IDX_TO_EMOTION = {idx: emotion for emotion, idx in EMOTION_TO_IDX.items()}
 CNN_FILTERS = [64, 128, 256]  # Filters for each CNN block
 CNN_KERNEL_SIZE = (3, 3)
 CNN_POOL_SIZE = (2, 2)
-CNN_DROPOUT = 0.3
+CNN_DROPOUT = 0.2
 
 # BiLSTM Parameters
 LSTM_UNITS = 256
-LSTM_DROPOUT = 0.4
-LSTM_RECURRENT_DROPOUT = 0.2
+LSTM_DROPOUT = 0.2
+LSTM_RECURRENT_DROPOUT = 0.0  # Reserved for compatibility
 
 # Attention Parameters
 NUM_ATTENTION_HEADS = 4
 ATTENTION_HEAD_DIM = 64
 
 # Regularization
-L2_REGULARIZATION = 0.002
-DROPOUT_RATE = 0.3
+L2_REGULARIZATION = 0.0005
+DROPOUT_RATE = 0.2
 BATCH_NORM = True
 
 # ============================================================================
@@ -94,26 +93,34 @@ BATCH_NORM = True
 # ============================================================================
 BATCH_SIZE = 16
 EPOCHS = 300
-LEARNING_RATE = 0.0005
+LEARNING_RATE = 0.0004
+NUM_WORKERS = 0
+PIN_MEMORY = True
 
 # Learning rate scheduler
 USE_LR_SCHEDULER = True
+LR_SCHEDULER_TYPE = 'cosine'  # 'plateau' or 'cosine'
 LR_REDUCE_FACTOR = 0.5
 LR_REDUCE_PATIENCE = 10
 LR_REDUCE_MIN_LR = 1e-6
+COSINE_T_MAX = 30
+COSINE_ETA_MIN = 1e-6
 
 # Early stopping
-EARLY_STOPPING_PATIENCE = 20
-EARLY_STOPPING_MIN_DELTA = 0.001
+EARLY_STOPPING_PATIENCE = 30
+EARLY_STOPPING_MIN_DELTA = 0.0005
+MIN_EPOCHS_BEFORE_EARLY_STOP = 60
 
 # Optimizer
 OPTIMIZER = 'adam'  # 'adam', 'adamw', 'rmsprop'
 GRADIENT_CLIP_NORM = 1.0
+USE_CLASS_WEIGHTS = True
+LABEL_SMOOTHING = 0.05
 
 # ============================================================================
 # VALIDATION & TESTING
 # ============================================================================
-CALCULATE_METRICS = True  # Calculate F1, precision, recall
+CALCULATE_METRICS = True
 SAVE_BEST_ONLY = True
 MONITOR_METRIC = 'val_accuracy'
 MONITOR_MODE = 'max'
@@ -122,20 +129,19 @@ MONITOR_MODE = 'max'
 # GPU/DEVICE
 # ============================================================================
 USE_GPU = True
-GPU_MEMORY_FRACTION = 0.9  # Use up to 90% of GPU memory
-ALLOW_GROWTH = True  # Allow GPU memory to grow as needed
+ALLOW_GROWTH = True  # Kept for compatibility
 
 # ============================================================================
 # LOGGING & CHECKPOINTING
 # ============================================================================
-VERBOSE = 1  # 0=silent, 1=progress bar, 2=one line per epoch
-LOG_LEVEL = 'INFO'  # 'DEBUG', 'INFO', 'WARNING', 'ERROR'
-SAVE_INTERVAL = 5  # Save model every N epochs
-PLOT_INTERVAL = 1  # Plot metrics every N epochs
+VERBOSE = 1
+LOG_LEVEL = 'INFO'
+SAVE_INTERVAL = 5  # Save periodic checkpoint every N epochs
+PLOT_INTERVAL = 1
 
 # Model naming
 MODEL_NAME = 'cnn_bilstm_attention'
-MODEL_SUFFIX = '.h5'  # or '.keras'
+MODEL_SUFFIX = '.pt'
 
 # ============================================================================
 # PATHS FOR TRAINED MODELS
@@ -143,8 +149,6 @@ MODEL_SUFFIX = '.h5'  # or '.keras'
 BEST_MODEL_PATH = SAVED_MODELS_DIR / f'best_{MODEL_NAME}{MODEL_SUFFIX}'
 FINAL_MODEL_PATH = SAVED_MODELS_DIR / f'final_{MODEL_NAME}{MODEL_SUFFIX}'
 CHECKPOINT_DIR = SAVED_MODELS_DIR / 'checkpoints'
-
-# Create checkpoint directory
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ============================================================================
@@ -159,19 +163,18 @@ CLASSIFICATION_REPORT_PATH = RESULTS_DIR / 'classification_report.txt'
 # INFERENCE
 # ============================================================================
 INFERENCE_CONFIDENCE_THRESHOLD = 0.5
-RETURN_TOP_K = 3  # Return top K predictions
+RETURN_TOP_K = 3
 
 # ============================================================================
 # REPRODUCIBILITY
 # ============================================================================
-DETERMINISTIC = True  # Set seeds for reproducibility
-TF_DETERMINISTIC_OPS = True
+DETERMINISTIC = True
 
-# Print configuration
+
 if __name__ == '__main__':
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SER MODEL CONFIGURATION")
-    print("="*70)
+    print("=" * 70)
     print(f"\nProject Root: {PROJECT_ROOT}")
     print(f"Data Directory: {DATA_DIR}")
     print(f"Saved Models: {SAVED_MODELS_DIR}")
@@ -188,4 +191,4 @@ if __name__ == '__main__':
     print(f"\nBatch Size: {BATCH_SIZE}")
     print(f"Learning Rate: {LEARNING_RATE}")
     print(f"Max Epochs: {EPOCHS}")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
