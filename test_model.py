@@ -19,8 +19,8 @@ SER_MODEL_DIR = PROJECT_ROOT / "ser_model"
 if str(SER_MODEL_DIR) not in sys.path:
     sys.path.insert(0, str(SER_MODEL_DIR))
 
-from config import BEST_MODEL_PATH, BATCH_SIZE, EMOTIONS  # noqa: E402
-from predict import SERPredictor  # noqa: E402
+from ser_model.config import BEST_MODEL_PATH, BATCH_SIZE, EMOTIONS  # noqa: E402
+from ser_model.predict import SERPredictor  # noqa: E402
 
 EMOTION_CODE_MAP = {
     "a": "angry",
