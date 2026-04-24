@@ -1,0 +1,3 @@
+audio_path,actor_id,sentence_type,sentence_id,true_emotion,predicted_emotion,confidence,correct
+C:\Users\Siddhant Jinturkar\EchoEmotion\test_sample_fixed\a_a06_s_s2.wav,a06,seen,s2,angry,fear,0.6107343435287476,False
+C:\Users\Siddhant Jinturkar\EchoEmotion\test_sample_fixed\n_a06_s_s1.wav,a06,seen,s1,neutral,neutral,0.5000303983688354,True
