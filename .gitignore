@@ -9,7 +9,7 @@ combined_dataset/
 *.npy
 
 # Models (keep selected ones only if needed)
-# saved_models/
+saved_models/
 
 # Ignore heavy feature dumps
 saved_models/Approach2/features/
