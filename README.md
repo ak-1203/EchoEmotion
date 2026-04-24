@@ -1,10 +1,8 @@
 # EchoEmotion
 
-**Speech Emotion Recognition using Deep Learning — ECL443 Course Project**
+**Speech Emotion Recognition using Deep Learning**
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.0-red) ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.10-orange) ![License](https://img.shields.io/badge/License-MIT-green)
-
-**Authors:** Siddhant Jinturkar (BT23ECE066), Akash Tiwari (BT23ECE076)
 
 ---
 
