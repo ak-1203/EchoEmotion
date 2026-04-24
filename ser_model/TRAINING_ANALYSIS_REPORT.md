@@ -57,3 +57,70 @@ This report compares all training runs shared in terminal summaries during this 
 - Current best metrics:
   - Test Accuracy: **73.98%**
   - Macro F1: **74.03%**
+
+## Model Architecture
+
+The Speech Emotion Recognition (SER) model is based on a CNN + BiLSTM + Multi-Head Attention architecture implemented in PyTorch. Below are the key details:
+
+### Architecture Details
+- **Input Features:** Mel-spectrograms (64 mel bins, 93 time steps)
+- **CNN Layers:**
+  - 3 convolutional blocks, each with:
+    - Convolutional layer (3x3 kernel)
+    - ReLU activation
+    - Batch Normalization (optional)
+    - MaxPooling (2x2)
+    - Dropout (20%)
+- **BiLSTM Layers:**
+  - 2 BiLSTM layers with:
+    - First layer: 256 units, bidirectional
+    - Second layer: 128 units, bidirectional
+    - Dropout (20%)
+- **Attention Mechanism:**
+  - Multi-head self-attention with 4 heads
+  - Batch Normalization (optional)
+- **Classifier:**
+  - Fully connected layers with ReLU, BatchNorm, Dropout
+  - Final output layer with 6 units (softmax activation for emotion classes)
+
+### Model Parameters
+- **Total Parameters:** ~2.5M
+- **Optimizer:** Adam with L2 regularization (0.0005)
+- **Learning Rate:** 0.0004 (cosine scheduler)
+- **Batch Size:** 16
+- **Epochs:** 300 (early stopping at 60 epochs)
+- **Regularization:**
+  - Dropout: 20%
+  - Label Smoothing: 0.05
+  - Class Weights: Enabled
+
+## Performance Summary
+- **Best Model:** `saved_models/best_cnn_bilstm_attention.pt`
+- **Test Accuracy:** 73.98%
+- **Macro F1 Score:** 74.03%
+- **Validation Accuracy:** 76.98% (peak)
+
+## Experiments Conducted
+1. **Baseline Model:**
+   - Simple CNN + Dense layers
+   - Test Accuracy: ~65%
+2. **Regularization Tuning:**
+   - Adjusted dropout rates, L2 regularization, and label smoothing
+   - Improved generalization, reduced overfitting
+3. **Training Control Tuning:**
+   - Added class weights, cosine learning rate scheduler
+   - Achieved best performance in R7 run
+4. **Data Augmentation:**
+   - SpecAugment, noise addition, pitch/time shifts
+   - Enhanced robustness to unseen data
+
+## Key Observations
+- The model shows strong performance on seen data but struggles with unseen sentences, indicating a need for better generalization.
+- Actor-wise accuracy varies significantly, with actor a04 achieving the highest accuracy (50%).
+- The model is sensitive to hyperparameter tuning, with significant improvements observed in R6 and R7 runs.
+
+## Recommendations for Future Work
+- Broader hyperparameter search around the R7 regime.
+- Explore advanced architectures (e.g., transformers, larger attention heads).
+- Incorporate additional datasets to improve generalization.
+- Experiment with more aggressive data augmentation techniques.
