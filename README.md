@@ -33,8 +33,6 @@ Speech Emotion Recognition (SER) is a challenging task aimed at classifying emot
 
 The key challenge addressed is the domain shift from studio-quality datasets to real-world audio.
 
----
-
 ## Datasets
 
 | Dataset      | Emotions | Files   | Used In                  |
@@ -181,7 +179,11 @@ In contrast, Approach 2 demonstrates more realistic confusion patterns, which al
 | Approach 2 CNN+BiLSTM          | 35.0%    | Best on custom set            |
 
 ---
+## Project Presentation
 
+For a detailed walkthrough of the project, architecture, and experiments:
+
+[View Presentation (PDF)](docs/EchoEmotion_SER_Presentation.pdf)
 ## Setup & Installation
 
 ### Prerequisites
