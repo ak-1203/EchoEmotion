@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from shutil import which
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +21,7 @@ SER_MODEL_DIR = PROJECT_ROOT / "ser_model"
 if str(SER_MODEL_DIR) not in sys.path:
     sys.path.insert(0, str(SER_MODEL_DIR))
 
-from ser_model.config import BEST_MODEL_PATH, BATCH_SIZE, EMOTIONS  # noqa: E402
+from ser_model.config import BEST_MODEL_PATH, BATCH_SIZE, EMOTIONS, SAMPLE_RATE  # noqa: E402
 from ser_model.predict import SERPredictor  # noqa: E402
 
 EMOTION_CODE_MAP = {
@@ -74,6 +76,73 @@ def discover_audio_files(dataset_root: Path) -> list[FileRecord]:
     if not audio_paths:
         raise FileNotFoundError(f"No .wav files found under {dataset_root}")
     return [parse_filename(path) for path in audio_paths]
+
+
+def resolve_ffmpeg_bin(ffmpeg_bin: str | None) -> str:
+    candidate = ffmpeg_bin or which("ffmpeg") or which("ffmpeg.exe")
+    if not candidate:
+        raise FileNotFoundError(
+            "FFmpeg executable not found. Install ffmpeg, add it to PATH, "
+            "or pass --ffmpeg-bin with the full executable path."
+        )
+    return candidate
+
+
+def convert_to_pcm_wav(source_path: Path, target_path: Path, sample_rate: int, ffmpeg_bin: str) -> None:
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    command = [
+        ffmpeg_bin,
+        "-y",
+        "-i",
+        str(source_path),
+        "-ac",
+        "1",
+        "-ar",
+        str(sample_rate),
+        "-c:a",
+        "pcm_s16le",
+        str(target_path),
+    ]
+    completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=False)
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"FFmpeg preprocessing failed for {source_path} (exit code {completed.returncode}): "
+            f"{completed.stderr.strip()}"
+        )
+
+
+def preprocess_records(
+    records: list[FileRecord],
+    preprocessed_dir: Path,
+    sample_rate: int,
+    ffmpeg_bin: str,
+) -> tuple[list[FileRecord], int]:
+    processed_records: list[FileRecord] = []
+    converted_count = 0
+
+    for record in records:
+        converted_path = preprocessed_dir / record.audio_path.name
+        needs_convert = (
+            not converted_path.exists()
+            or record.audio_path.stat().st_mtime > converted_path.stat().st_mtime
+        )
+        if needs_convert:
+            convert_to_pcm_wav(record.audio_path, converted_path, sample_rate, ffmpeg_bin)
+            converted_count += 1
+
+        processed_records.append(
+            FileRecord(
+                audio_path=converted_path,
+                emotion_code=record.emotion_code,
+                actor_id=record.actor_id,
+                sentence_type_code=record.sentence_type_code,
+                sentence_id=record.sentence_id,
+                true_emotion=record.true_emotion,
+                sentence_type=record.sentence_type,
+            )
+        )
+
+    return processed_records, converted_count
 
 
 def build_input_tensor(records: list[FileRecord], predictor: SERPredictor) -> torch.Tensor:
@@ -217,6 +286,29 @@ def parse_args() -> argparse.Namespace:
         default=BATCH_SIZE,
         help="Batch size for inference.",
     )
+    parser.add_argument(
+        "--preprocess-audio",
+        action="store_true",
+        help="Preprocess input files to mono PCM WAV before inference (recommended for externally recorded samples).",
+    )
+    parser.add_argument(
+        "--preprocessed-dir",
+        type=Path,
+        default=None,
+        help="Directory to store preprocessed WAV files. Defaults to <output-dir>/preprocessed_audio.",
+    )
+    parser.add_argument(
+        "--sample-rate",
+        type=int,
+        default=SAMPLE_RATE,
+        help="Target sample rate for preprocessing.",
+    )
+    parser.add_argument(
+        "--ffmpeg-bin",
+        type=str,
+        default=None,
+        help="Optional full path to ffmpeg executable for preprocessing.",
+    )
     return parser.parse_args()
 
 
@@ -234,6 +326,14 @@ def main() -> None:
 
     predictor = SERPredictor(model_path=model_path)
     records = discover_audio_files(dataset_root)
+
+    converted_count = 0
+    preprocessed_dir: Path | None = None
+    if args.preprocess_audio:
+        ffmpeg_bin = resolve_ffmpeg_bin(args.ffmpeg_bin)
+        preprocessed_dir = (args.preprocessed_dir or (output_dir / "preprocessed_audio")).resolve()
+        records, converted_count = preprocess_records(records, preprocessed_dir, args.sample_rate, ffmpeg_bin)
+
     batch_tensor = build_input_tensor(records, predictor)
     probabilities = run_inference(predictor, batch_tensor, args.batch_size)
     predicted_indices = np.argmax(probabilities, axis=1)
@@ -308,6 +408,9 @@ def main() -> None:
         "dataset_root": str(dataset_root),
         "model_path": str(model_path),
         "num_files": len(records),
+        "preprocessing_enabled": bool(args.preprocess_audio),
+        "preprocessed_dir": str(preprocessed_dir) if preprocessed_dir else None,
+        "num_preprocessed_files": int(converted_count),
         "overall_accuracy": overall_accuracy,
         "seen_accuracy": seen_accuracy,
         "unseen_accuracy": unseen_accuracy,
@@ -318,6 +421,9 @@ def main() -> None:
     (output_dir / "metrics.json").write_text(json.dumps(metrics_payload, indent=2), encoding="utf-8")
 
     print(f"Files evaluated: {len(records)}")
+    if args.preprocess_audio:
+        print(f"Preprocessed files: {converted_count}")
+        print(f"Preprocessed wav dir: {preprocessed_dir}")
     print(f"Overall accuracy: {overall_accuracy:.4f}")
     if seen_accuracy is not None:
         print(f"Seen accuracy: {seen_accuracy:.4f}")
