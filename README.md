@@ -118,28 +118,39 @@ EchoEmotion/
 - **Results:** `results/approach2_cnn_bilstm/`
 
 ---
+## System Overview
+
+![Pipeline](assets/echoemotion_pipeline_overview.svg)
+
+---
+
+## Model Architectures
+
+![Architecture](assets/echoemotion_architecture_comparison.svg)
+
+---
 
 ## Training Results
 
 ### Training Curves
 
 #### Approach 1 — 1D CNN
-![Approach 1 Training](results/approach1_1dcnn/training_curve.png)
+![Approach 1 Training](results/Approach1_1DCNN/training_curve.png)
 
 #### Approach 2 — CNN + BiLSTM + Attention
-![Approach 2 Training](results/approach2_cnn-bilstm/training_history.png)
+![Approach 2 Training](results/Approach2_cnn-bilstm/training_history.png)
 
 ### Confusion Matrices
 
-#### Approach 1 — Multi-Dataset CNN
-![Approach 1 Confusion Matrix](results/approach1_1dcnn/confusion_matrix.png)  
+#### Approach 1 — 1D CNN
+![Approach 1 Confusion Matrix](results/Approach1_1DCNN/confusion_matrix.png)  
 
 - **Best Test Accuracy:** 98.05%
 - **Peak Validation Accuracy:** 98.06%
 - **Macro F1:** ~98%
 
 #### Approach 2 — CNN + BiLSTM + Attention
-![Approach 2 Confusion Matrix](results/approach2_cnn-bilstm/confusion_matrix.png)
+![Approach 2 Confusion Matrix](results/Approach2_cnn-bilstm/confusion_matrix.png)
 
 - Approach 1 shows near-perfect classification across all classes, indicating strong fit on combined datasets.
 - Approach 2 exhibits confusion between similar emotions (e.g., neutral vs sad), reflecting real-world ambiguity and better generalization behavior. 
