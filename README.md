@@ -238,11 +238,18 @@ pip install -r requirements.txt
 
 ---
 
+## 👥 Authors
+
+- [Akash Tiwari](https://github.com/ak-1203)
+- [Siddhant Jinturkar](https://github.com/Sidd6767)
+
+---
 ## License
 
 This project is licensed under the MIT License.
 
 ---
+
 
 ## Citation / Acknowledgements
 
